@@ -4,6 +4,7 @@
       "mode": "token"
     },
     "controlUi": {
+      "dangerouslyAllowHostHeaderOriginFallback": true,
       "allowInsecureAuth": true
     }
   }
