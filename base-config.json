@@ -1,8 +1,10 @@
 {
   "gateway": {
+    "auth": {
+      "mode": "token"
+    },
     "controlUi": {
-      "dangerouslyAllowHostHeaderOriginFallback": true,
-      "dangerouslyDisableDeviceAuth": true
+      "allowInsecureAuth": true
     }
   }
 }
