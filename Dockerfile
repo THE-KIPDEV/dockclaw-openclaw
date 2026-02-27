@@ -17,4 +17,8 @@ RUN chmod +x /usr/sbin/nginx && \
       cp /usr/sbin/nginx "$(dirname "$REAL")/nginx"; \
     fi
 
+# Base config: allow Control UI from any origin (Railway domains are dynamic)
+COPY base-config.json /etc/openclaw/base-config.json
+ENV OPENCLAW_CUSTOM_CONFIG=/etc/openclaw/base-config.json
+
 # Run as root so Railway volume mounts (owned by root) are writable.
