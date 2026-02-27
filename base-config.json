@@ -5,6 +5,7 @@
       "mode": "token"
     },
     "controlUi": {
+      "allowedOrigins": ["https://dockclaw.io", "https://www.dockclaw.io"],
       "dangerouslyAllowHostHeaderOriginFallback": true,
       "allowInsecureAuth": true,
       "dangerouslyDisableDeviceAuth": true
