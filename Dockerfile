@@ -1,18 +1,23 @@
 FROM coollabsio/openclaw:latest
 
-# Fix: Remove the "browser" upstream from nginx config that causes
-# "host not found in upstream" when running without the browser sidecar.
 USER root
-RUN if [ -f /etc/nginx/conf.d/openclaw.conf ]; then \
-      sed -i '/upstream browser/,/}/d' /etc/nginx/conf.d/openclaw.conf; \
-      sed -i '/location.*browser/,/}/d' /etc/nginx/conf.d/openclaw.conf; \
-    fi && \
-    find /app/scripts -name '*.conf' -o -name '*.conf.template' 2>/dev/null | \
-      xargs -r sed -i '/upstream browser/,/}/d' 2>/dev/null && \
+
+# Intercept nginx binary to fix browser upstream at runtime.
+# The entrypoint regenerates nginx config from templates, so build-time
+# patches get overwritten. This wrapper patches the config right before
+# nginx actually starts.
+RUN NGINX_BIN=$(which nginx) && \
+    mv "$NGINX_BIN" "${NGINX_BIN}-real" && \
+    printf '#!/bin/sh\n\
+# Remove browser upstream that causes "host not found" without browser sidecar\n\
+for f in /etc/nginx/conf.d/*.conf; do\n\
+  sed -i "/upstream browser/,/}/d" "$f" 2>/dev/null\n\
+  sed -i "/location.*\\/browser/,/}/d" "$f" 2>/dev/null\n\
+done\n\
+exec %s-real "$@"\n' "$NGINX_BIN" > "$NGINX_BIN" && \
+    chmod +x "$NGINX_BIN" && \
     # Ensure dirs exist (volume may override at runtime)
     mkdir -p /home/node/.openclaw /home/node/workspace && \
     chown -R 1000:1000 /home/node
 
-# Run as root so volume mounts (owned by root) are writable.
-# Security boundary is the Railway container isolation, not the UID.
-# The original entrypoint handles everything else.
+# Run as root so Railway volume mounts (owned by root) are writable.
